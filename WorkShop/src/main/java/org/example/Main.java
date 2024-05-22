@@ -2,10 +2,11 @@ package org.example;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.io.IOException;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         var applicationContext = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
         var accountDao = applicationContext.getBean(AccountDao.class);
 
@@ -37,6 +38,18 @@ public class Main {
         // Получение всех аккаунтов после удаления
         List<Contact> allContactsAfterDeletion = accountDao.getAllAccounts();
         System.out.println("Все аккаунты после удаления: ");
+        allContactsAfterDeletion.forEach(System.out::println);
+
+        System.out.println("---------------------------");
+
+        // Получение контактов из NetUtils и добавление их в базу данных
+        NetUtils netUtils = new NetUtils();
+        List<Contact> contacts = netUtils.getContacts();
+        accountDao.addContact(contacts);
+
+        System.out.println("Добавленные контакты:");
+        System.out.println(contacts);
+
         allContactsAfterDeletion.forEach(System.out::println);
     }
 }

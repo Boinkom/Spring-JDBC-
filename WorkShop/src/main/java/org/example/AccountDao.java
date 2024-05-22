@@ -16,4 +16,6 @@ public interface AccountDao {
     void deleteAccount(String accountId);
 
     List<Contact> getAllAccounts();
+
+    List<Contact> addContact(List<Contact> contacts);
 }

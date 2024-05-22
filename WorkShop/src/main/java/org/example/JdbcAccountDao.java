@@ -2,6 +2,8 @@ package org.example;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -27,9 +29,11 @@ public class JdbcAccountDao implements AccountDao {
     );
 
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
-    public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
+    public JdbcAccountDao(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.namedJdbcTemplate = namedJdbcTemplate;
     }
 
     @Override
@@ -62,7 +66,7 @@ public class JdbcAccountDao implements AccountDao {
 
     @Override
     public void setAmount(String accountId, String amount) {
-
+        // Not implemented
     }
 
     @Override
@@ -83,5 +87,23 @@ public class JdbcAccountDao implements AccountDao {
     @Override
     public List<Contact> getAllAccounts() {
         return jdbcTemplate.query(GET_ALL_ACCOUNTS_SQL, ACCOUNT_ROW_MAPPER);
+    }
+
+    @Override
+    public List<Contact> addContact(List<Contact> contacts) {
+        var args = contacts.stream()
+                .map(contact -> new MapSqlParameterSource()
+                        .addValue("id", UUID.randomUUID().toString())
+                        .addValue("name", contact.getName())
+                        .addValue("surname", contact.getSurname())
+                        .addValue("email", contact.getEmail())
+                        .addValue("phone", contact.getPhone()))
+                .toArray(MapSqlParameterSource[]::new);
+
+        namedJdbcTemplate.batchUpdate(
+                "INSERT INTO \"table\" (ID, NAME, SURNAME, EMAIL, PHONE) VALUES (:id, :name, :surname, :email, :phone)",
+                args
+        );
+        return contacts;
     }
 }
